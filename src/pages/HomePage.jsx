@@ -16,9 +16,9 @@ import 'aos/dist/aos.css';
 import { StickyNavbar } from '../components/Navbar.jsx';
 import Copyright from '../utils/Copyright.jsx';
 import { useNavigate } from "react-router-dom";
-import card2 from '../assets/images/item/1-Way Cassette Type.jpg'
-import card3 from '../assets/images/item/2-Way Cassette Type.jpg'
-import card4 from '../assets/images/item/2.jpg'
+// import card2 from '../assets/images/item/1-Way Cassette Type.jpg'
+// import card3 from '../assets/images/item/2-Way Cassette Type.jpg'
+// import card4 from '../assets/images/item/2.jpg'
 import { mokup } from '../data/mokup.js';
 
 AOS.init();
