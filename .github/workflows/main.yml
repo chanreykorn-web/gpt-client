@@ -23,13 +23,13 @@ jobs:
       - name: Cache npm dependencies
         uses: actions/cache@v3
         id: cache-node-modules
+        continue-on-error: true
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install
+        run: npm ci
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           CI: false
@@ -37,10 +37,10 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      - name: Check dist directory exists
+      - name: Check dist or build directory exists
         run: |
-          if [ ! -d "dist" ]; then
-            echo "❌ Dist directory does not exist! Check your build script output."
+          if [ ! -d "dist" ] && [ ! -d "build" ]; then
+            echo "❌ Neither dist nor build directory exists! Check your build script output."
             exit 1
           fi
 
