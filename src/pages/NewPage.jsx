@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StickyNavbar } from '../components/Navbar';
 import { Banners } from './HomePage';
 import { Footer } from '../components/Footer';
@@ -7,14 +7,30 @@ import banner1 from '../assets/images/banner/1734663252864-Goal Plus Trading.jpg
 
 
 export const NewPage = () => {
+    const [banner, setBanner] = useState([]);
+    const fetchBanner = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/banners/all/public/1`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            console.log("Banner data:", data);
+            setBanner(data);
+        } catch (e) {
+            console.error("Error fetching banner:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchBanner();
+    }, []);
     return (
         <div>
             <StickyNavbar />
-            <Banners backgroundImage={'https://images.pexels.com/photos/1578333/pexels-photo-1578333.jpeg'} />
+            <Banners backgroundImage={`${import.meta.env.VITE_API_URL}/uploads/${banner.path}`} />
             <div className='px-8 py-5 md:px-15'>
                 <RelatedProducts />
             </div>
-            <FujiaireHero />
+            {/* <FujiaireHero /> */}
             <Footer />
         </div>
     );

@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StickyNavbar } from '../components/Navbar';
-import { Banners, ProcessSection } from './HomePage';
+import { Banners, ChooseUS, ProcessSection } from './HomePage';
 import { ChooseUsCard, ChooseUsSection } from '../components/ChooseUsComponents';
 import AirIcon from '@mui/icons-material/Air';
 import CastIcon from '@mui/icons-material/Cast';
 import InvertColorsIcon from '@mui/icons-material/InvertColors';
 import AcUnitSharpIcon from '@mui/icons-material/AcUnitSharp';
 import { Footer } from '../components/Footer';
+import { sync } from 'framer-motion';
 
 
 export const ChooseUsDetailPage = () => {
@@ -32,17 +33,35 @@ export const ChooseUsDetailPage = () => {
             description: 'Enjoy peaceful environments thanks to our ultra-quiet, whisper-soft fan technology.',
         },
     ];
+
+    const [chooseUs, setChooseUs] = useState([]);
+
+    const fetchChoose = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/choose-us/all/public/1`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            console.log(" choose us:", data);
+            setChooseUs(data);
+        } catch (e) {
+            console.error("Error fetching choose us:", e);
+        }
+    }
+
+    useEffect(() => {
+        fetchChoose();
+    }, []);
+
     return (
         <div>
             <StickyNavbar />
             <Banners />
             <div className='px-8 py-5 md:px-15'>
-                <ChooseUsSection
-                    title="Featured"
-                    description="Cooler, somarter, better"
-                />
-                <ChooseUsCard features={features} />
-                {/* <CoolComfortSection /> */}
+                {/* <ChooseUsSection
+                    title={chooseUs.category}
+                    description={chooseUs.category_sub}
+                /> */}
+                <ChooseUS />
                 <ProcessSection />
             </div>
             <Footer />

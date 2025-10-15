@@ -12,6 +12,9 @@ import { CoolComfortSection } from './CoolComfortSection';
 import axios from 'axios';
 import { Loading } from '../components/Loading';
 import { mokup } from '../data/mokup.js';
+import ReactImageGallery from 'react-image-gallery';
+import "react-image-gallery/styles/css/image-gallery.css";
+import { ChooseUS } from './HomePage.jsx';
 
 
 
@@ -43,11 +46,12 @@ export const CatePage = () => {
             <StickyNavbar />
             <div className='px-8 py-5 md:px-15'>
                 <ProductsDetailSection />
-                <ChooseUsSection
+                {/* <ChooseUsSection
                     title="Featured Products"
                     description="Cooler, somarter, better"
-                />
-                <ChooseUsCard features={features} />
+                /> */}
+                {/* <ChooseUsCard features={features} /> */}
+                <ChooseUS />
                 {/* <ChooseUsSection
                     title="Spaicication"
                     description="Let's clear the air"
@@ -66,60 +70,76 @@ export const CatePage = () => {
 
 export const ProductsDetailSection = () => {
     const { id } = useParams();
-    const location = useLocation();
-    const [product, setProduct] = useState(location.state?.product || null);
-    const [mainImage, setMainImage] = useState("");
-    const [loading, setLoading] = useState(!location.state?.product);
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    // Scroll to top on mount
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+    // Fetch product from API
     useEffect(() => {
-        if (!product) {
-            setLoading(true);
-            // Find product in mokup array by id (id may be string or number)
-            const found = mokup.find(item => String(item.id) === String(id));
-            setProduct(found || null);
-            setMainImage(found?.images?.[0] || "");
-            setLoading(false);
-        } else {
-            setMainImage(product.images?.[0] || "");
-            setLoading(false);
-        }
-    }, [id, product]);
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/products/all/public/${id}`);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
 
-    if (loading || !product) {
-        return <Loading />;
-    }
+                setProduct(data); // assume API returns single product object
+            } catch (err) {
+                console.error("Error fetching product:", err);
+                setProduct(null);
+            } finally {
+                setLoading(false);
+            }
+        };
 
+        fetchProduct();
+    }, [id]);
+
+    if (loading) return <Loading />;
+    if (!product) return <p className="text-center text-red-500">Product not found.</p>;
+
+    // Build gallery items: primary image first, then other images
+    const galleryItems = [
+        ...(product.primary_path
+            ? [
+                {
+                    original: `${import.meta.env.VITE_API_URL}/uploads/${product.primary_path}`,
+                    thumbnail: `${import.meta.env.VITE_API_URL}/uploads/${product.primary_path}`,
+                },
+            ]
+            : []),
+        ...(product.images?.map((img) => ({
+            original: `${import.meta.env.VITE_API_URL}/uploads/${img.path}`,
+            thumbnail: `${import.meta.env.VITE_API_URL}/uploads/${img.path}`,
+        })) || []),
+    ];
 
     return (
-        <div className="">
-            <h1 className="text-4xl text-fujiaire-text text-center mb-15 font-bold">{product.name}</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
-                <div className="flex flex-col items-center">
-                    <img
-                        src={mainImage}
-                        alt={product.name}
-                        className="w-full h-[70%] object-cover rounded shadow"
+        <div className="px-4 md:px-0 py-10">
+            <h1 className="text-4xl text-fujiaire-text text-center mb-10 font-bold">{product.name}</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-5">
+                <div className="flex flex-col">
+                    <ReactImageGallery
+                        items={galleryItems}
+                        showPlayButton={false}
+                        showFullscreenButton={true}
+                        slideDuration={400}
+                        thumbnailPosition="bottom"
+                        additionalClass="custom-gallery"
                     />
-                    <div className="flex space-x-4 mt-4">
-                        {product.images && product.images.map((img, idx) => (
-                            <button key={idx} onClick={() => setMainImage(img)} className="focus:outline-none">
-                                <img
-                                    src={img}
-                                    alt={`Thumbnail ${idx + 1}`}
-                                    className={`w-25 h-15 object-cover border rounded shadow-md transform transition duration-300 ${mainImage === img ? "border-blue-500 shadow-2xl scale-105" : "border-gray-300"
-                                        } hover:shadow-2xl hover:scale-105`}
-                                />
-                            </button>
-                        ))}
-                    </div>
                 </div>
+
                 <div>
-                    <p className="text-fujiaire-text text-3xl">{product.description}</p>
-                    <p className='text-xl mt-10'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit ipsam in cupiditate maiores placeat nesciunt eum totam repudiandae assumenda, facilis nam cum expedita recusandae, nobis reiciendis quibusdam ipsum nulla voluptatibus sequi iste nostrum odio mollitia. Soluta rerum, vitae, sit voluptate fugiat fugit aliquam fuga laborum sequi aspernatur dignissimos debitis impedit.</p>
+                    {product.detail && (
+                        <div
+                            className="text-gray-700 text-lg"
+                            dangerouslySetInnerHTML={{ __html: product.detail }}
+                        />
+                    )}
                 </div>
             </div>
         </div>

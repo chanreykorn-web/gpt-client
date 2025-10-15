@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StickyNavbar } from '../components/Navbar';
 import { Banners } from './HomePage';
 import CallIcon from '@mui/icons-material/Call';
@@ -9,10 +9,26 @@ import FacebookOutlinedIcon from '@mui/icons-material/FacebookOutlined';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 
 export const ContactPage = () => {
+    const [banner, setBanner] = useState([]);
+    const fetchBanner = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/banners/all/public/1`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            console.log("Banner data:", data);
+            setBanner(data);
+        } catch (e) {
+            console.error("Error fetching banner:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchBanner();
+    }, []);
     return (
         <div>
             <StickyNavbar />
-            <Banners backgroundImage={'https://images.pexels.com/photos/2192854/pexels-photo-2192854.jpeg'} />
+            <Banners backgroundImage={`${import.meta.env.VITE_API_URL}/uploads/${banner.path}`} />
             <div className='px-8 py-5 md:px-15'>
                 <ContactIcon />
             </div>

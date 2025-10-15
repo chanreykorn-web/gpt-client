@@ -42,10 +42,26 @@ const responsive = {
 
 
 export const AboutPage = () => {
+    const [banner, setBanner] = useState([]);
+    const fetchBanner = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/banners/all/public/2`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            console.log("Banner data:", data);
+            setBanner(data);
+        } catch (e) {
+            console.error("Error fetching banner:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchBanner();
+    }, []);
     return (
         <div>
             <StickyNavbar />
-            <Banners backgroundImage={banner1} />
+            <Banners backgroundImage={`${import.meta.env.VITE_API_URL}/uploads/${banner.path}`} />
             <div className='px-8 py-5 md:px-15'>
                 <AboutMain />
             </div>
@@ -62,64 +78,82 @@ export const AboutPage = () => {
 
 export const AboutMain = () => {
     const [value, setValue] = useState(0);
-
+    const [sections, setSections] = useState([]);
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
 
+    const fetchSections = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/missions/all/public`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            console.log("missions:", data);
+            setSections(data); // expected: [{id, title, content, path}, ...]
+        } catch (err) {
+            console.error("Error fetching about sections:", err);
+        }
+    };
+
     useEffect(() => {
+        fetchSections();
         AOS.init({
             duration: 600,
-            once: false, // <-- key change
-            mirror: true, // animate on scroll up too
+            once: false,
+            mirror: true,
         });
     }, []);
 
     return (
         <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
-            <img src={banner1} alt="" data-aos="fade-up"
-            />
-            <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
-                <Tabs value={value} onChange={handleChange} centered>
-                    <Tab label="History" />
-                    <Tab label="Mission" />
-                    <Tab label="Core Value" />
-                </Tabs>
+            {sections.map((item, index) => {
+                return (
+                    <>
+                        <img src={`${import.meta.env.VITE_API_URL}/uploads/${item.path}`} alt="" key={index} data-aos="fade-up"
+                            className='w-full h-[400px] object-cover'
+                        />
+                        <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                            <Tabs value={value} onChange={handleChange} centered>
+                                <Tab label="History" />
+                                <Tab label="Mission" />
+                                <Tab label="Core Value" />
+                            </Tabs>
 
-                {/* ✅ Conditionally render tab content */}
-                <Box sx={{ mt: 3 }}>
-                    {value === 0 && <SectionHistory />}
-                    {value === 1 && <SectionMission />}
-                    {value === 2 && <SectionValue />}
-                </Box>
-            </Box>
+                            <Box sx={{ mt: 3 }}>
+                                {value === 0 && <SectionHistory history={item.history} />}
+                                {value === 1 && <SectionMission mission={item.mission} />}
+                                {value === 2 && <SectionValue history={item.history} />}
+                            </Box>
+
+                        </Box>
+                    </>
+                )
+            })}
         </div>
     );
 };
 
-export const SectionHistory = () => {
+export const SectionHistory = ({ history }) => {
     return (
-        <div className='flex justify-center items-center h-auto' data-aos="fade-up">
-            <p className='text-xl text-center'>To be the one-stop solution for our customers, earn their trust,
-                and build long lasting relationship</p>
+        <div className='flex h-auto' data-aos="fade-up">
+            <p className='text-xl' dangerouslySetInnerHTML={{ __html: history }} />
         </div>
     )
 }
 
 
-export const SectionMission = () => {
+export const SectionMission = ({ mission }) => {
     return (
-        <div className='flex justify-center items-center h-auto' data-aos="fade-up">
-            <p className='text-xl text-center'>To fulfill customer satisfaction by providing superior
-                quality products, services, and solutions. </p>
+        <div className='flex items-center h-auto' data-aos="fade-up">
+            <p className='text-xl' dangerouslySetInnerHTML={{ __html: mission }} />
         </div>
     )
 }
 
-export const SectionValue = () => {
+export const SectionValue = ({ history }) => {
     return (
-        <div className='flex justify-center items-center h-auto' data-aos="fade-up">
-            <p className='text-xl text-center'>TTeamwork, Integrity, Accountability and Communication Excellence.</p>
+        <div className='flex items-center h-auto' data-aos="fade-up">
+            <p className='text-xl' dangerouslySetInnerHTML={{ __html: history }} />
         </div>
     )
 }
@@ -144,6 +178,23 @@ export const Testimonials = () => {
 }
 
 export const SectionCarousel = () => {
+    const [ceo, setCeo] = useState([]);
+    const fetchCeo = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/ceo/all/public`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+            const data = await res.json();
+            setCeo(data);
+        } catch (e) {
+            console.error("Error fetching ceo:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchCeo();
+    }, []);
+
     return (
         <Carousel
             responsive={responsive}
@@ -154,49 +205,32 @@ export const SectionCarousel = () => {
             showDots={false}
             className="pb-4"
         >
-            <div className='w-full py-5'>
-                <h1 className='text-md px-5 py-5'>
-                    The Cool Air system has transformed our work environment. It maintains perfect temperature levels throughout the day,
-                    and we've seen a noticeable drop in energy costs. Highly recommended for large office spaces.
-                </h1>
-                <div className='flex items-center px-5 py-5'>
-                    <Stack direction="row" spacing={2}>
-                        <div className='flex items-center gap-3'>
-                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                            <span>CEO Vinea</span>
+            {ceo.map((item, index) => {
+                return (
+                    <div className='w-full py-5'>
+                        <h1 className="text-md px-5 py-5">
+                            {item?.detail
+                                ? (() => {
+                                    // remove HTML tags and trim to 300 chars
+                                    const plainText = item.detail.replace(/<[^>]+>/g, "");
+                                    return plainText.length > 300
+                                        ? plainText.slice(0, 300) + "..."
+                                        : plainText;
+                                })()
+                                : ""}
+                        </h1>
+                        <div className='flex items-center px-5 py-5'>
+                            <Stack direction="row" spacing={2}>
+                                <div className='flex items-center gap-3'>
+                                    <Avatar alt="Remy Sharp" src={`${import.meta.env.VITE_API_URL}/uploads/${item.path}`} />
+                                    <span>CEO Vinea</span>
+                                </div>
+                            </Stack>
                         </div>
-                    </Stack>
-                </div>
-            </div>
-            <div className='w-full py-5'>
-                <h1 className='text-md px-5 py-5'>
-                    The Cool Air system has transformed our work environment. It maintains perfect temperature levels throughout the day,
-                    and we've seen a noticeable drop in energy costs. Highly recommended for large office spaces.
-                </h1>
-                <div className='flex items-center px-5 py-5'>
-                    <Stack direction="row" spacing={2}>
-                        <div className='flex items-center gap-3'>
-                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                            <span>CEO Vinea</span>
-                        </div>
-                    </Stack>
-                </div>
-            </div>
-            <div className='w-full py-5'>
-                <h1 className='text-md px-5 py-5'>
-                    The Cool Air system has transformed our work environment. It maintains perfect temperature levels throughout the day,
-                    and we've seen a noticeable drop in energy costs. Highly recommended for large office spaces.
-                </h1>
-                <div className='flex items-center px-5 py-5'>
-                    <Stack direction="row" spacing={2}>
-                        <div className='flex items-center gap-3'>
-                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                            <span>CEO Vinea</span>
-                        </div>
-                    </Stack>
-                </div>
-            </div>
-        </Carousel>
+                    </div>
+                )
+            })}
+        </Carousel >
     )
 }
 
@@ -214,31 +248,30 @@ export const HistoryOFDevelopment = () => {
 
 
 export const TimelineDevelopment = () => {
+    const [timelineDevelopment, setTimelineDevelopment] = useState([]);
+
+    const fetchTimelineDevelopment = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/industry/all/public`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+            const data = await res.json();
+            setTimelineDevelopment(data);
+            console.log("Dev", data)
+        } catch (e) {
+            console.error("Error fetching industry:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchTimelineDevelopment();
+    }, []);
+
     return (
         <div className="px-4 md:px-12 lg:px-24 py-8">
             <Timeline position="alternate">
-                {[
-                    {
-                        year: '1985',
-                        text: 'MR. TAN and MR. Yamamoto founded the trading business of Fujiaire Malaysia',
-                    },
-                    {
-                        year: '1993',
-                        text: 'Fujiaire entered the air conditioning business',
-                    },
-                    {
-                        year: '1997',
-                        text: 'Fujiaire opened its RAC Factory in Kuala Lumpur, and within three years, it had become the No.1 popular local brand in Malaysia',
-                    },
-                    {
-                        year: '2000',
-                        text: 'Fujiaire began to enter the real estate industry. Now Fujiaire has become a major player in ASEAN',
-                    },
-                    {
-                        year: '2010',
-                        text: 'Fujiaire sold more than 30,000 units of air conditioners, becoming the first local air conditioner brand in ASEAN',
-                    },
-                ].map((item, index) => (
+
+                {timelineDevelopment.map((item, index) => (
                     <TimelineItem key={index}>
                         <TimelineOppositeContent
                             sx={{
@@ -250,9 +283,9 @@ export const TimelineDevelopment = () => {
                             }}
                         >
                             <img
-                                src={banner1}
+                                src={`${import.meta.env.VITE_API_URL}/uploads/${item.path}`}
                                 alt="timeline"
-                                className="w-40 md:w-60 lg:w-72 rounded shadow-md object-contain"
+                                className="w-40 md:w-60 lg:w-80 lg:h-40 rounded shadow-md object-cover"
                             />
                         </TimelineOppositeContent>
                         <TimelineSeparator>
@@ -263,7 +296,7 @@ export const TimelineDevelopment = () => {
                             <h3 className="text-lg font-semibold text-sky-600 mb-1">
                                 In {item.year}
                             </h3>
-                            <p className=" text-sm md:text-base text-gray-700">{item.text}</p>
+                            <p className=" text-sm md:text-base text-gray-700">{item.title}</p>
                         </TimelineContent>
                     </TimelineItem>
                 ))}

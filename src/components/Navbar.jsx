@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import logoPath from '../../public/Artboard 12.png'
+
 
 export const StickyNavbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -21,8 +23,8 @@ export const StickyNavbar = () => {
     return (
         <header className="sticky top-0 z-50 bg-white shadow-md px-6 py-4">
             <div className="flex justify-between items-center max-w-7xl mx-auto">
-                <h1 className="text-xl font-bold text-sky-600">Logo</h1>
-
+                {/* <h1 className="text-xl font-bold text-sky-600">Logo</h1> */}
+                <img src={logoPath} alt="" className="w-[150px]" />
                 {/* Desktop nav */}
                 <nav className="hidden md:flex space-x-8 text-sky-600 font-medium">
                     {navItems.map((item) => (
